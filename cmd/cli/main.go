@@ -52,7 +52,7 @@ func main() {
 			fmt.Printf("Error while encoding JSON: %v\n", err)
 		}
 	} else {
-		_, err = fmt.Fprintf(os.Stdout, "Result:\nStdout: %s\nStderr: %s\nExit code: %d\nExecution time: %s\nCompilation time: %s", result.StdoutText, result.StderrText, result.ExitCode, result.ExecutionTime, result.CompilationTime)
+		_, err = fmt.Fprintf(os.Stdout, "Result:\nStdout: %s\nStderr: %s\nExit code: %d\nExecution time: %s\nCompilation time: %s", result.StdoutText, result.StderrText, result.ExitCode, result.ExecutionTimeMs, result.CompilationTimeMs)
 		if err != nil {
 			fmt.Printf("Error while printing result: %v\n", err)
 		}
