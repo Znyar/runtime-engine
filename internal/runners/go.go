@@ -38,7 +38,8 @@ func (r *GoRunner) Execute(code []byte) (RunnerResult, error) {
 
 	if err = compileCmd.Run(); err != nil {
 		return RunnerResult{
-			Stderr:          compileStderr.Bytes(),
+			StderrData:      compileStderr.Bytes(),
+			StderrText:      string(compileStderr.Bytes()),
 			ExitCode:        compileCmd.ProcessState.ExitCode(),
 			CompilationTime: time.Since(compileStart),
 		}, nil
@@ -60,7 +61,8 @@ func (r *GoRunner) Execute(code []byte) (RunnerResult, error) {
 
 	if err = execCmd.Run(); err != nil {
 		return RunnerResult{
-			Stderr:          execStderr.Bytes(),
+			StderrData:      execStderr.Bytes(),
+			StderrText:      string(execStderr.Bytes()),
 			ExitCode:        execCmd.ProcessState.ExitCode(),
 			ExecutionTime:   time.Since(execStart),
 			CompilationTime: compilationTime,
@@ -68,7 +70,8 @@ func (r *GoRunner) Execute(code []byte) (RunnerResult, error) {
 	}
 
 	return RunnerResult{
-		Stdout:          execStdout.Bytes(),
+		StdoutData:      execStdout.Bytes(),
+		StdoutText:      string(execStdout.Bytes()),
 		CompilationTime: compilationTime,
 		ExecutionTime:   time.Since(execStart),
 		ExitCode:        execCmd.ProcessState.ExitCode(),

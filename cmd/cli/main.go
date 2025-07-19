@@ -1,59 +1,60 @@
 package main
 
 import (
+	"encoding/json"
+	"flag"
 	"fmt"
 	"os"
 	"runtime-engine/internal/executor"
 	"runtime-engine/internal/runners"
 	"runtime-engine/pkg/logger"
-	"sync"
-	"time"
 )
 
 func main() {
+	jsonOutput := flag.Bool("json", false, "Enable JSON output")
+	flag.Parse()
+
 	var log = logger.New(os.Stdout, logger.LevelDebug, true)
 
-	if len(os.Args) < 3 {
-		log.Info("Usage: runner <language> <file>")
+	if len(flag.Args()) < 2 {
+		fmt.Println("Usage: runner [flags] <language> <file>")
 		os.Exit(1)
 	}
 
-	lang := os.Args[1]
-	filePath := os.Args[2]
+	lang := runners.Language(flag.Arg(0))
+	filePath := flag.Arg(1)
 
 	code, err := os.ReadFile(filePath)
 	if err != nil {
-		log.Error("Error reading file: %v", err)
+		fmt.Printf("Error reading file: %v\n", err)
 		os.Exit(1)
 	}
 
-	exec := executor.NewCachedExecutor(5*time.Second, 10)
+	exec := executor.NewDefaultExecutor(10)
 
-	var wg sync.WaitGroup
-	jobsCount := 50
-
-	for i := 0; i < jobsCount; i++ {
-		wg.Add(1)
-		go func(jobId int) {
-			defer wg.Done()
-			startNewJob(exec, runners.Language(lang), code, jobId, log)
-		}(i + 1)
-		time.Sleep(1000 * time.Millisecond)
-	}
-
-	wg.Wait()
-	fmt.Println("All jobs completed")
-}
-
-func startNewJob(exec *executor.CachedExecutor, lang runners.Language, code []byte, jobId int, log *logger.Logger) {
-	log.Info("Job %d started", jobId)
-
-	res, err := exec.Run(lang, code, log)
-
+	result, err := exec.Run(lang, code, log)
 	if err != nil {
-		log.Error("Execution error: %v", err)
-		return
+		fmt.Printf("Execution error: %v", err)
+		if *jsonOutput {
+			err := json.NewEncoder(os.Stdout).Encode(map[string]interface{}{
+				"error": err.Error(),
+			})
+			if err != nil {
+				fmt.Printf("Error while encoding JSON: %v\n", err)
+			}
+		}
+		os.Exit(1)
 	}
 
-	log.Info("Job %d result:\nStdout: %s\nStderr: %s\nExit code: %d\nExecution time: %s\nCompilation time: %s", jobId, res.Stdout, res.Stderr, res.ExitCode, res.ExecutionTime, res.CompilationTime)
+	if *jsonOutput {
+		err := json.NewEncoder(os.Stdout).Encode(result)
+		if err != nil {
+			fmt.Printf("Error while encoding JSON: %v\n", err)
+		}
+	} else {
+		_, err = fmt.Fprintf(os.Stdout, "Result:\nStdout: %s\nStderr: %s\nExit code: %d\nExecution time: %s\nCompilation time: %s", result.StdoutText, result.StderrText, result.ExitCode, result.ExecutionTime, result.CompilationTime)
+		if err != nil {
+			fmt.Printf("Error while printing result: %v\n", err)
+		}
+	}
 }
