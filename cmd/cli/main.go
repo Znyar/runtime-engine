@@ -27,10 +27,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	exec := executor.NewCachedExecutor(2*time.Second, 5)
+	exec := executor.NewCachedExecutor(10*time.Second, 20)
 
 	var wg sync.WaitGroup
-	jobsCount := 20
+	jobsCount := 50
 
 	for i := 0; i < jobsCount; i++ {
 		wg.Add(1)
@@ -38,7 +38,7 @@ func main() {
 			defer wg.Done()
 			startNewJob(exec, runners.Language(lang), code, jobId, log)
 		}(i + 1)
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(10 * time.Millisecond)
 	}
 
 	wg.Wait()

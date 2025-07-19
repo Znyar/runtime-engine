@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	"runtime-engine/internal/runners"
+	"runtime-engine/internal/semaphore"
 	"runtime-engine/pkg/logger"
 	"sync"
 	"time"
@@ -13,14 +14,14 @@ type CachedExecutor struct {
 	cache      map[string]runners.RunnerResult
 	cacheMutex sync.RWMutex
 	ttl        time.Duration
-	semaphore  chan struct{}
+	semaphore  *semaphore.Semaphore
 }
 
 func NewCachedExecutor(ttl time.Duration, maxParallel int) *CachedExecutor {
 	return &CachedExecutor{
 		cache:     make(map[string]runners.RunnerResult),
 		ttl:       ttl,
-		semaphore: make(chan struct{}, maxParallel),
+		semaphore: semaphore.New(maxParallel),
 	}
 }
 
@@ -37,8 +38,8 @@ func (e *CachedExecutor) Run(lang runners.Language, code []byte, log *logger.Log
 		return item, nil
 	}
 
-	e.semaphore <- struct{}{}
-	defer func() { <-e.semaphore }()
+	e.semaphore.Acquire()
+	defer e.semaphore.Release()
 
 	r, err := runners.GetRunner(lang)
 	if err != nil {
@@ -53,6 +54,7 @@ func (e *CachedExecutor) Run(lang runners.Language, code []byte, log *logger.Log
 
 	e.cacheMutex.Lock()
 	e.cache[key] = result
+	log.Debug(op, "job result cached %s", key)
 	e.cacheMutex.Unlock()
 
 	time.AfterFunc(e.ttl, func() {
