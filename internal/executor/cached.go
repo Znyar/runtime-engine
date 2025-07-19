@@ -4,8 +4,8 @@ import (
 	"crypto/md5"
 	"fmt"
 	"runtime-engine/internal/runners"
-	"runtime-engine/internal/semaphore"
 	"runtime-engine/pkg/logger"
+	"runtime-engine/pkg/semaphore"
 	"sync"
 	"time"
 )

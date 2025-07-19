@@ -11,7 +11,6 @@ import (
 type GoRunner struct{}
 
 func (r *GoRunner) Execute(code []byte) (RunnerResult, error) {
-	fmt.Println("Executing Go code")
 	tmpFile, err := os.CreateTemp("", "*.go")
 	if err != nil {
 		return RunnerResult{}, fmt.Errorf("failed to create temp file: %w", err)
