@@ -41,7 +41,7 @@ func (r *GoRunner) Execute(code []byte) (RunnerResult, error) {
 			StderrData:      compileStderr.Bytes(),
 			StderrText:      string(compileStderr.Bytes()),
 			ExitCode:        compileCmd.ProcessState.ExitCode(),
-			CompilationTime: time.Since(compileStart),
+			CompilationTime: time.Since(compileStart).Milliseconds(),
 		}, nil
 	}
 	compilationTime := time.Since(compileStart)
@@ -64,16 +64,16 @@ func (r *GoRunner) Execute(code []byte) (RunnerResult, error) {
 			StderrData:      execStderr.Bytes(),
 			StderrText:      string(execStderr.Bytes()),
 			ExitCode:        execCmd.ProcessState.ExitCode(),
-			ExecutionTime:   time.Since(execStart),
-			CompilationTime: compilationTime,
+			ExecutionTime:   time.Since(execStart).Milliseconds(),
+			CompilationTime: compilationTime.Milliseconds(),
 		}, nil
 	}
 
 	return RunnerResult{
 		StdoutData:      execStdout.Bytes(),
 		StdoutText:      string(execStdout.Bytes()),
-		CompilationTime: compilationTime,
-		ExecutionTime:   time.Since(execStart),
+		CompilationTime: compilationTime.Milliseconds(),
+		ExecutionTime:   time.Since(execStart).Milliseconds(),
 		ExitCode:        execCmd.ProcessState.ExitCode(),
 	}, nil
 }
