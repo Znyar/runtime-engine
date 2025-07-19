@@ -44,6 +44,7 @@ func (r *GoRunner) Execute(code []byte) (RunnerResult, error) {
 		}, nil
 	}
 	compilationTime := time.Since(compileStart)
+
 	defer func(name string) {
 		err := os.Remove(name)
 		if err != nil {
