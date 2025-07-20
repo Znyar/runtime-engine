@@ -3,8 +3,8 @@ package executor
 import (
 	"crypto/md5"
 	"fmt"
+	"log/slog"
 	"runtime-engine/internal/runners"
-	"runtime-engine/pkg/logger"
 	"runtime-engine/pkg/semaphore"
 	"sync"
 	"time"
@@ -25,7 +25,7 @@ func NewCachedExecutor(ttl time.Duration, maxParallel int) *CachedExecutor {
 	}
 }
 
-func (e *CachedExecutor) Run(lang runners.Language, code []byte, log *logger.Logger) (runners.RunnerResult, error) {
+func (e *CachedExecutor) Run(lang runners.Language, code []byte, log *slog.Logger) (runners.RunnerResult, error) {
 	op := "executor.Run"
 	key := fmt.Sprintf("%s:%x", lang, md5.Sum(code))
 

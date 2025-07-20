@@ -1,8 +1,8 @@
 package executor
 
 import (
+	"log/slog"
 	"runtime-engine/internal/runners"
-	"runtime-engine/pkg/logger"
 	"runtime-engine/pkg/semaphore"
 )
 
@@ -16,7 +16,7 @@ func NewDefaultExecutor(maxParallel int) *DefaultExecutor {
 	}
 }
 
-func (e *DefaultExecutor) Run(lang runners.Language, code []byte, log *logger.Logger) (runners.RunnerResult, error) {
+func (e *DefaultExecutor) Run(lang runners.Language, code []byte, log *slog.Logger) (runners.RunnerResult, error) {
 	op := "executor.Run"
 
 	e.semaphore.Acquire()

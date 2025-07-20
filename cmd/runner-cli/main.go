@@ -4,17 +4,17 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"log/slog"
 	"os"
 	"runtime-engine/internal/executor"
 	"runtime-engine/internal/runners"
-	"runtime-engine/pkg/logger"
 )
 
 func main() {
 	jsonOutput := flag.Bool("json", false, "Enable JSON output")
 	flag.Parse()
 
-	var log = logger.New(os.Stdout, logger.LevelDebug, true)
+	var log = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 
 	if len(flag.Args()) < 2 {
 		fmt.Println("Usage: runner [flags] <language> <file>")
