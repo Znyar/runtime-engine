@@ -1,0 +1,11 @@
+services:
+  web-api:
+    build: .
+    ports:
+      - "8082:8082"
+    container_name: runtime-engine
+    restart: no
+    environment:
+      CONFIG_PATH: "/app/config/local.yaml"
+    volumes:
+      - ./config/local.yaml:/app/config/local.yaml

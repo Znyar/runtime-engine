@@ -13,9 +13,16 @@ type HttpServerConfig struct {
 }
 
 type HTTPServer struct {
-	Address     string        `yaml:"address" env-default:"0.0.0.0:8080"`
-	Timeout     time.Duration `yaml:"timeout" env-default:"5s"`
-	IdleTimeout time.Duration `yaml:"idle_timeout" env-default:"60s"`
+	Address        string        `yaml:"address" env-default:"0.0.0.0:8080"`
+	Timeout        time.Duration `yaml:"timeout" env-default:"5s"`
+	IdleTimeout    time.Duration `yaml:"idle_timeout" env-default:"60s"`
+	ContextTimeout time.Duration `yaml:"context_timeout" env-default:"10s"`
+	CachedExecutor `yaml:"cached_executor"`
+}
+
+type CachedExecutor struct {
+	Ttl         time.Duration `yaml:"ttl" env-default:"60s"`
+	MaxParallel int           `yaml:"max_parallel" env-default:"5"`
 }
 
 func MustLoad() *HttpServerConfig {

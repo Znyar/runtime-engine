@@ -43,12 +43,13 @@ func (e *CachedExecutor) Run(lang runners.Language, code []byte, log *slog.Logge
 
 	r, err := runners.GetRunner(lang)
 	if err != nil {
-		log.Error(op, "get runner error: %s", err)
+		log.Error(op, "get runner error:", err)
 		return runners.RunnerResult{}, err
 	}
 
-	result, err := r.Execute(code)
+	result, err := r.Execute(code, log)
 	if err != nil {
+		log.Error(op, "failed to execute code:", err)
 		return result, err
 	}
 

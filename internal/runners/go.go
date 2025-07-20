@@ -2,37 +2,48 @@ package runners
 
 import (
 	"bytes"
-	"fmt"
+	"log/slog"
 	"os"
 	"os/exec"
+	"runtime-engine/pkg/logger/sl"
 	"time"
 )
 
 type GoRunner struct{}
 
-func (r *GoRunner) Execute(code []byte) (RunnerResult, error) {
+func (r *GoRunner) Execute(code []byte, log *slog.Logger) (RunnerResult, error) {
+	const op = "runners.go.Execute"
+
+	log = log.With(
+		slog.String("op", op),
+	)
+
 	tmpFile, err := os.CreateTemp("", "*.go")
 	if err != nil {
-		return RunnerResult{}, fmt.Errorf("failed to create temp file: %w", err)
+		log.Error("failed to create temp file", sl.Err(err))
+		return RunnerResult{}, err
 	}
 	defer func(name string) {
 		err := os.Remove(name)
 		if err != nil {
-			fmt.Printf("failed to remove temp file: %s\n", name)
+			log.Error("failed to remove temp file", sl.Err(err))
 		}
 	}(tmpFile.Name())
 
 	if _, err := tmpFile.Write(code); err != nil {
-		return RunnerResult{}, fmt.Errorf("failed to write code: %w", err)
+		log.Error("failed to create temp file", sl.Err(err))
+		return RunnerResult{}, err
 	}
 	err = tmpFile.Close()
 	if err != nil {
-		return RunnerResult{}, fmt.Errorf("failed to close file: %w", err)
+		log.Error("failed to close file:", err)
+		return RunnerResult{}, err
 	}
 
+	log.Debug("compiling")
 	compileStart := time.Now()
-	execFile := tmpFile.Name() + ".exe"
-	compileCmd := exec.Command("go", "build", "-o", execFile, tmpFile.Name())
+	execFileName := tmpFile.Name() + ".exe"
+	compileCmd := exec.Command("go", "build", "-o", execFileName, tmpFile.Name())
 	var compileStderr bytes.Buffer
 	compileCmd.Stderr = &compileStderr
 
@@ -42,23 +53,24 @@ func (r *GoRunner) Execute(code []byte) (RunnerResult, error) {
 			StderrText:        string(compileStderr.Bytes()),
 			ExitCode:          compileCmd.ProcessState.ExitCode(),
 			CompilationTimeMs: time.Since(compileStart).Seconds() * 1000,
-		}, nil
+		}, err
 	}
 	compilationTime := time.Since(compileStart)
 
 	defer func(name string) {
 		err := os.Remove(name)
 		if err != nil {
-			fmt.Printf("failed to remove temp file: %s\n", name)
+			log.Error("failed to remove temp file", sl.Err(err))
 		}
-	}(execFile)
+	}(execFileName)
 
 	execStart := time.Now()
-	execCmd := exec.Command(execFile)
+	execCmd := exec.Command(execFileName)
 	var execStdout, execStderr bytes.Buffer
 	execCmd.Stdout = &execStdout
 	execCmd.Stderr = &execStderr
 
+	log.Debug("running")
 	if err = execCmd.Run(); err != nil {
 		return RunnerResult{
 			StderrData:        execStderr.Bytes(),
@@ -66,7 +78,7 @@ func (r *GoRunner) Execute(code []byte) (RunnerResult, error) {
 			ExitCode:          execCmd.ProcessState.ExitCode(),
 			ExecutionTimeMs:   time.Since(execStart).Seconds() * 1000,
 			CompilationTimeMs: compilationTime.Seconds() * 1000,
-		}, nil
+		}, err
 	}
 
 	return RunnerResult{

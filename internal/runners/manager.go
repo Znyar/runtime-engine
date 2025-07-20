@@ -2,6 +2,7 @@ package runners
 
 import (
 	"fmt"
+	"log/slog"
 )
 
 type Language string
@@ -11,7 +12,7 @@ const (
 )
 
 type Runner interface {
-	Execute(code []byte) (RunnerResult, error)
+	Execute(code []byte, log *slog.Logger) (RunnerResult, error)
 }
 
 func GetRunner(lang Language) (Runner, error) {

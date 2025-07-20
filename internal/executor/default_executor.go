@@ -28,8 +28,9 @@ func (e *DefaultExecutor) Run(lang runners.Language, code []byte, log *slog.Logg
 		return runners.RunnerResult{}, err
 	}
 
-	result, err := r.Execute(code)
+	result, err := r.Execute(code, log)
 	if err != nil {
+		log.Error(op, "runner execute error: %s", err)
 		return result, err
 	}
 
