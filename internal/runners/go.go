@@ -43,7 +43,7 @@ func (r *GoRunner) Execute(code []byte, log *slog.Logger) (RunnerResult, error) 
 	log.Debug("compiling")
 	compileStart := time.Now()
 	execFileName := tmpFile.Name() + ".exe"
-	compileCmd := exec.Command("go", "build", "-o", execFileName, tmpFile.Name())
+	compileCmd := exec.Command("/data/go/1.24.5/bin/go", "build", "-o", execFileName, tmpFile.Name())
 	var compileStderr bytes.Buffer
 	compileCmd.Stderr = &compileStderr
 

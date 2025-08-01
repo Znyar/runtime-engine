@@ -10,6 +10,8 @@ RUN go build -o /bin/web-api ./cmd/web-api/main.go
 
 FROM debian:bookworm-slim
 
+RUN apt-get update && apt-get install -y curl
+
 WORKDIR /app
 
 COPY --from=builder /bin/web-api /app/web-api

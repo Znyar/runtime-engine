@@ -11,7 +11,10 @@ import (
 	"runtime-engine/internal/config"
 	"runtime-engine/internal/executor"
 	"runtime-engine/internal/http-server/handlers/execute"
+	"runtime-engine/internal/http-server/handlers/install"
+	"runtime-engine/internal/http-server/handlers/pack"
 	"runtime-engine/internal/http-server/middleware/logger"
+	"runtime-engine/internal/langs"
 	"runtime-engine/pkg/logger/sl"
 	"syscall"
 )
@@ -32,6 +35,7 @@ func main() {
 	log.Debug("logger debug mode enabled")
 
 	e := executor.NewCachedExecutor(cfg.Ttl, cfg.MaxParallel)
+	m := langs.New(log)
 
 	router := chi.NewRouter()
 
@@ -43,6 +47,8 @@ func main() {
 
 	router.Route("/api/v1", func(r chi.Router) {
 		r.Post("/execute", execute.New(log, e))
+		r.Post("/install", install.New(log, *m))
+		r.Post("/pack", pack.New(log, *m))
 	})
 
 	log.Info("starting server", slog.String("address", cfg.Address))

@@ -9,3 +9,5 @@ services:
       CONFIG_PATH: "/app/config/local.yaml"
     volumes:
       - ./config/local.yaml:/app/config/local.yaml
+      - ./data:/data
+      - ./scripts:/app/scripts
