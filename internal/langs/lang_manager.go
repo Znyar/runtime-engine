@@ -26,7 +26,6 @@ func (m *LangManager) Install(lang runners.Language, version string) error {
 	)
 
 	cmd := exec.Command("/bin/sh", scriptPath)
-	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	return cmd.Run()
@@ -41,7 +40,6 @@ func (m *LangManager) Pack(lang runners.Language, version string) error {
 	)
 
 	cmd := exec.Command("/bin/sh", scriptPath)
-	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	return cmd.Run()
