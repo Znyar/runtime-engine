@@ -2,9 +2,9 @@ package executor
 
 import (
 	"log/slog"
-	"runtime-engine/internal/runners"
+	"runtime-engine/internal/runner"
 )
 
 type Executor interface {
-	Run(lang runners.Language, code []byte, log *slog.Logger) (runners.RunnerResult, error)
+	Run(lang string, version string, code []byte, log *slog.Logger) (runner.Result, error)
 }

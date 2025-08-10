@@ -1,4 +1,4 @@
-package runners
+package runner
 
 import (
 	"bytes"
@@ -9,10 +9,18 @@ import (
 	"time"
 )
 
-type GoRunner struct{}
+type Result struct {
+	CompilationTimeMs float64 `json:"compilation_time_ms,omitempty"`
+	ExecutionTimeMs   float64 `json:"execution_time_ms,omitempty"`
+	StdoutText        string  `json:"stdout,omitempty"`
+	StdoutData        []byte  `json:"stdout_data,omitempty"`
+	StderrText        string  `json:"stderr_text,omitempty"`
+	StderrData        []byte  `json:"stderr_data,omitempty"`
+	ExitCode          int     `json:"exit_code,omitempty"`
+}
 
-func (r *GoRunner) Execute(code []byte, log *slog.Logger) (RunnerResult, error) {
-	const op = "runners.go.Execute"
+func Execute(code []byte, language string, version string, log *slog.Logger) (Result, error) {
+	const op = "runner.Execute"
 
 	log = log.With(
 		slog.String("op", op),
@@ -21,7 +29,7 @@ func (r *GoRunner) Execute(code []byte, log *slog.Logger) (RunnerResult, error) 
 	tmpFile, err := os.CreateTemp("", "*.go")
 	if err != nil {
 		log.Error("failed to create temp file", sl.Err(err))
-		return RunnerResult{}, err
+		return Result{}, err
 	}
 	defer func(name string) {
 		err := os.Remove(name)
@@ -32,12 +40,12 @@ func (r *GoRunner) Execute(code []byte, log *slog.Logger) (RunnerResult, error) 
 
 	if _, err := tmpFile.Write(code); err != nil {
 		log.Error("failed to create temp file", sl.Err(err))
-		return RunnerResult{}, err
+		return Result{}, err
 	}
 	err = tmpFile.Close()
 	if err != nil {
 		log.Error("failed to close file:", err)
-		return RunnerResult{}, err
+		return Result{}, err
 	}
 
 	log.Debug("compiling")
@@ -48,7 +56,7 @@ func (r *GoRunner) Execute(code []byte, log *slog.Logger) (RunnerResult, error) 
 	compileCmd.Stderr = &compileStderr
 
 	if err = compileCmd.Run(); err != nil {
-		return RunnerResult{
+		return Result{
 			StderrData:        compileStderr.Bytes(),
 			StderrText:        string(compileStderr.Bytes()),
 			ExitCode:          compileCmd.ProcessState.ExitCode(),
@@ -72,7 +80,7 @@ func (r *GoRunner) Execute(code []byte, log *slog.Logger) (RunnerResult, error) 
 
 	log.Debug("running")
 	if err = execCmd.Run(); err != nil {
-		return RunnerResult{
+		return Result{
 			StderrData:        execStderr.Bytes(),
 			StderrText:        string(execStderr.Bytes()),
 			ExitCode:          execCmd.ProcessState.ExitCode(),
@@ -81,7 +89,7 @@ func (r *GoRunner) Execute(code []byte, log *slog.Logger) (RunnerResult, error) 
 		}, err
 	}
 
-	return RunnerResult{
+	return Result{
 		StdoutData:        execStdout.Bytes(),
 		StdoutText:        string(execStdout.Bytes()),
 		CompilationTimeMs: compilationTime.Seconds() * 1000,

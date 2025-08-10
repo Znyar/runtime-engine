@@ -4,14 +4,14 @@ import (
 	"crypto/md5"
 	"fmt"
 	"log/slog"
-	"runtime-engine/internal/runners"
+	"runtime-engine/internal/runner"
 	"runtime-engine/pkg/semaphore"
 	"sync"
 	"time"
 )
 
 type CachedExecutor struct {
-	cache      map[string]runners.RunnerResult
+	cache      map[string]runner.Result
 	cacheMutex sync.RWMutex
 	ttl        time.Duration
 	semaphore  *semaphore.Semaphore
@@ -19,13 +19,13 @@ type CachedExecutor struct {
 
 func NewCachedExecutor(ttl time.Duration, maxParallel int) *CachedExecutor {
 	return &CachedExecutor{
-		cache:     make(map[string]runners.RunnerResult),
+		cache:     make(map[string]runner.Result),
 		ttl:       ttl,
 		semaphore: semaphore.New(maxParallel),
 	}
 }
 
-func (e *CachedExecutor) Run(lang runners.Language, code []byte, log *slog.Logger) (runners.RunnerResult, error) {
+func (e *CachedExecutor) Run(lang string, version string, code []byte, log *slog.Logger) (runner.Result, error) {
 	op := "executor.Run"
 	key := fmt.Sprintf("%s:%x", lang, md5.Sum(code))
 
@@ -41,13 +41,7 @@ func (e *CachedExecutor) Run(lang runners.Language, code []byte, log *slog.Logge
 	e.semaphore.Acquire()
 	defer e.semaphore.Release()
 
-	r, err := runners.GetRunner(lang)
-	if err != nil {
-		log.Error(op, "get runner error:", err)
-		return runners.RunnerResult{}, err
-	}
-
-	result, err := r.Execute(code, log)
+	result, err := runner.Execute(code, lang, version, log)
 	if err != nil {
 		log.Error(op, "failed to execute code:", err)
 		return result, err

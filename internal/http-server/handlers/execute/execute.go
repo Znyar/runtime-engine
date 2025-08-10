@@ -10,17 +10,18 @@ import (
 	"log/slog"
 	"net/http"
 	"runtime-engine/internal/executor"
-	"runtime-engine/internal/runners"
+	"runtime-engine/internal/runner"
 )
 
-type ExecutorServiceRequest struct {
-	Language runners.Language `json:"language" validate:"required"`
-	Code     string           `json:"code" validate:"required"`
+type Request struct {
+	Language string `json:"language" validate:"required"`
+	Version  string `json:"version" validate:"required"`
+	Code     string `json:"code" validate:"required"`
 }
 
 type Response struct {
-	Error        string               `json:"error,omitempty"`
-	RunnerResult runners.RunnerResult `json:"runner_result,omitempty"`
+	Error        string        `json:"error,omitempty"`
+	RunnerResult runner.Result `json:"runner_result,omitempty"`
 }
 
 func New(log *slog.Logger, e executor.Executor) http.HandlerFunc {
@@ -32,7 +33,7 @@ func New(log *slog.Logger, e executor.Executor) http.HandlerFunc {
 			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
 
-		var req ExecutorServiceRequest
+		var req Request
 
 		err := render.DecodeJSON(r.Body, &req)
 		if errors.Is(err, io.EOF) {
@@ -66,7 +67,7 @@ func New(log *slog.Logger, e executor.Executor) http.HandlerFunc {
 			return
 		}
 
-		res, err := e.Run(req.Language, []byte(req.Code), log)
+		res, err := e.Run(req.Language, req.Version, []byte(req.Code), log)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			render.JSON(w, r, Response{

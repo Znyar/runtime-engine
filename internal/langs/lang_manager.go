@@ -4,7 +4,6 @@ import (
 	"log/slog"
 	"os"
 	"os/exec"
-	"runtime-engine/internal/runners"
 )
 
 type LangManager struct {
@@ -17,11 +16,11 @@ func New(log *slog.Logger) *LangManager {
 	}
 }
 
-func (m *LangManager) Install(lang runners.Language, version string) error {
-	scriptPath := "/app/scripts/packages/" + string(lang) + "/" + version + "/install.sh"
+func (m *LangManager) Install(lang string, version string) error {
+	scriptPath := "/app/scripts/packages/" + lang + "/" + version + "/install.sh"
 
 	m.log.Info("installing language",
-		slog.String("lang", string(lang)),
+		slog.String("lang", lang),
 		slog.String("version", version),
 	)
 
@@ -31,11 +30,11 @@ func (m *LangManager) Install(lang runners.Language, version string) error {
 	return cmd.Run()
 }
 
-func (m *LangManager) Pack(lang runners.Language, version string) error {
-	scriptPath := "/app/scripts/packages/" + string(lang) + "/" + version + "/pack.sh"
+func (m *LangManager) Pack(lang string, version string) error {
+	scriptPath := "/app/scripts/packages/" + lang + "/" + version + "/pack.sh"
 
 	m.log.Info("installing package",
-		slog.String("lang", string(lang)),
+		slog.String("lang", lang),
 		slog.String("version", version),
 	)
 

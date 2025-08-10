@@ -2,7 +2,7 @@ package executor
 
 import (
 	"log/slog"
-	"runtime-engine/internal/runners"
+	"runtime-engine/internal/runner"
 	"runtime-engine/pkg/semaphore"
 )
 
@@ -16,19 +16,13 @@ func NewDefaultExecutor(maxParallel int) *DefaultExecutor {
 	}
 }
 
-func (e *DefaultExecutor) Run(lang runners.Language, code []byte, log *slog.Logger) (runners.RunnerResult, error) {
+func (e *DefaultExecutor) Run(lang string, version string, code []byte, log *slog.Logger) (runner.Result, error) {
 	op := "executor.Run"
 
 	e.semaphore.Acquire()
 	defer e.semaphore.Release()
 
-	r, err := runners.GetRunner(lang)
-	if err != nil {
-		log.Error(op, "get runner error: %s", err)
-		return runners.RunnerResult{}, err
-	}
-
-	result, err := r.Execute(code, log)
+	result, err := runner.Execute(code, lang, version, log)
 	if err != nil {
 		log.Error(op, "runner execute error: %s", err)
 		return result, err

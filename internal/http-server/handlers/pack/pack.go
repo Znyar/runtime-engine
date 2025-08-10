@@ -10,12 +10,11 @@ import (
 	"log/slog"
 	"net/http"
 	"runtime-engine/internal/langs"
-	"runtime-engine/internal/runners"
 )
 
-type PackServiceRequest struct {
-	Language runners.Language `json:"language" validate:"required"`
-	Version  string           `json:"version" validate:"required"`
+type Request struct {
+	Language string `json:"language" validate:"required"`
+	Version  string `json:"version" validate:"required"`
 }
 
 type Response struct {
@@ -31,7 +30,7 @@ func New(log *slog.Logger, m langs.LangManager) http.HandlerFunc {
 			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
 
-		var req PackServiceRequest
+		var req Request
 
 		err := render.DecodeJSON(r.Body, &req)
 		if errors.Is(err, io.EOF) {
