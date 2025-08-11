@@ -11,6 +11,3 @@ runner:
   compile_cpu_timeout: 10
   compile_memory_limit_KB: 51200
   run_memory_limit_KB: 51200
-cached_executor:
-  ttl: 60s
-  max_parallel: 10
