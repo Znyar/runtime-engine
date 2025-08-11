@@ -8,14 +8,21 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"runtime-engine/internal/executor"
+	"runtime-engine/internal/config"
 	"runtime-engine/internal/runner"
 )
 
 type Request struct {
-	Language string `json:"language" validate:"required"`
-	Version  string `json:"version" validate:"required"`
-	Code     string `json:"code" validate:"required"`
+	Language             string `json:"language" validate:"required"`
+	Version              string `json:"version" validate:"required"`
+	Code                 string `json:"code" validate:"required"`
+	Filename             string `json:"filename" validate:"required"`
+	CompileTimeout       int64  `json:"compile_timeout"`
+	RunTimeout           int64  `json:"run_timeout"`
+	RunCPUTimeout        int64  `json:"run_cpu_timeout"`
+	CompileCPUTimeout    int64  `json:"compile_cpu_timeout"`
+	CompileMemoryLimitKB int64  `json:"compile_memory_limit_KB"`
+	RunMemoryLimitKB     int64  `json:"run_memory_limit_KB"`
 }
 
 type Response struct {
@@ -23,15 +30,16 @@ type Response struct {
 	RunnerResult runner.Result `json:"runner_result,omitempty"`
 }
 
-func New(log *slog.Logger, e executor.Executor) http.HandlerFunc {
+func New(log *slog.Logger, cfg *config.HttpServerConfig) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		const op = "handlers.execute.New"
-
-		log = log.With(
-			slog.String("op", op),
-		)
-
-		var req Request
+		req := Request{
+			CompileTimeout:       cfg.CompileTimeout,
+			RunTimeout:           cfg.RunTimeout,
+			RunCPUTimeout:        cfg.RunCPUTimeout,
+			CompileCPUTimeout:    cfg.CompileCPUTimeout,
+			CompileMemoryLimitKB: cfg.CompileMemoryLimitKB,
+			RunMemoryLimitKB:     cfg.RunMemoryLimitKB,
+		}
 
 		err := render.DecodeJSON(r.Body, &req)
 		if errors.Is(err, io.EOF) {
@@ -65,11 +73,23 @@ func New(log *slog.Logger, e executor.Executor) http.HandlerFunc {
 			return
 		}
 
-		res, err := e.Run(req.Language, req.Version, []byte(req.Code), log)
+		res, err := runner.Execute(runner.Request{
+			Language:             req.Language,
+			Version:              req.Version,
+			Code:                 req.Code,
+			Filename:             req.Filename,
+			CompileTimeout:       req.CompileTimeout,
+			RunTimeout:           req.RunTimeout,
+			RunCPUTimeout:        req.RunCPUTimeout,
+			CompileCPUTimeout:    req.CompileCPUTimeout,
+			CompileMemoryLimitKB: req.CompileMemoryLimitKB,
+			RunMemoryLimitKB:     req.RunMemoryLimitKB,
+		}, log)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			render.JSON(w, r, Response{
-				Error: fmt.Sprintf("failed to process code: %s", err),
+				Error:        fmt.Sprintf("failed to process code: %s", err),
+				RunnerResult: res,
 			})
 
 			return
@@ -78,6 +98,5 @@ func New(log *slog.Logger, e executor.Executor) http.HandlerFunc {
 		render.JSON(w, r, Response{
 			RunnerResult: res,
 		})
-
 	}
 }

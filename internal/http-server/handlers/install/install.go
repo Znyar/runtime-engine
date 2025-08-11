@@ -22,12 +22,6 @@ type Response struct {
 
 func New(log *slog.Logger, m langs.LangManager) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		const op = "handlers.install.New"
-
-		log = log.With(
-			slog.String("op", op),
-		)
-
 		var req Request
 
 		err := render.DecodeJSON(r.Body, &req)

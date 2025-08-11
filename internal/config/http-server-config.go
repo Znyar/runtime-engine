@@ -8,8 +8,10 @@ import (
 )
 
 type HttpServerConfig struct {
-	Env        string `yaml:"env" env-default:"development"`
-	HTTPServer `yaml:"http_server"`
+	Env            string `yaml:"env" env-default:"development"`
+	HTTPServer     `yaml:"http_server"`
+	CachedExecutor `yaml:"cached_executor"`
+	Runner         `yaml:"runner"`
 }
 
 type HTTPServer struct {
@@ -17,12 +19,20 @@ type HTTPServer struct {
 	Timeout        time.Duration `yaml:"timeout" env-default:"5s"`
 	IdleTimeout    time.Duration `yaml:"idle_timeout" env-default:"60s"`
 	ContextTimeout time.Duration `yaml:"context_timeout" env-default:"10s"`
-	CachedExecutor `yaml:"cached_executor"`
 }
 
 type CachedExecutor struct {
 	Ttl         time.Duration `yaml:"ttl" env-default:"60s"`
 	MaxParallel int           `yaml:"max_parallel" env-default:"5"`
+}
+
+type Runner struct {
+	CompileTimeout       int64 `yaml:"compile_timeout"`
+	RunTimeout           int64 `yaml:"run_timeout"`
+	RunCPUTimeout        int64 `yaml:"run_cpu_timeout"`
+	CompileCPUTimeout    int64 `yaml:"compile_cpu_timeout"`
+	CompileMemoryLimitKB int64 `yaml:"compile_memory_limit_KB"`
+	RunMemoryLimitKB     int64 `yaml:"run_memory_limit_KB"`
 }
 
 func MustLoad() *HttpServerConfig {

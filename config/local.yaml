@@ -4,6 +4,13 @@ http_server:
   timeout: 600s
   idle_timeout: 30s
   context_timeout: 10s
-  cached_executor:
-    ttl: 60s
-    max_parallel: 10
+runner:
+  compile_timeout: 20
+  run_timeout: 6
+  run_cpu_timeout: 3
+  compile_cpu_timeout: 10
+  compile_memory_limit_KB: 51200
+  run_memory_limit_KB: 51200
+cached_executor:
+  ttl: 60s
+  max_parallel: 10

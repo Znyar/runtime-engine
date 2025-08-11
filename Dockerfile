@@ -14,7 +14,7 @@ WORKDIR /app
 
 COPY --from=builder /bin/web-api /app/web-api
 
-RUN apk add --no-cache curl
+RUN apk add --no-cache curl bubblewrap
 
 RUN chmod +x /app/web-api
 
