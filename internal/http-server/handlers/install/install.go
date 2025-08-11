@@ -3,7 +3,6 @@ package install
 import (
 	"errors"
 	"fmt"
-	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator/v10"
 	"io"
@@ -27,7 +26,6 @@ func New(log *slog.Logger, m langs.LangManager) http.HandlerFunc {
 
 		log = log.With(
 			slog.String("op", op),
-			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
 
 		var req Request

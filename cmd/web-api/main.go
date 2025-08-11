@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"log/slog"
@@ -39,7 +40,6 @@ func main() {
 
 	router := chi.NewRouter()
 
-	router.Use(middleware.RequestID)
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
@@ -65,8 +65,8 @@ func main() {
 	}
 
 	go func() {
-		if err := srv.ListenAndServe(); err != nil {
-			log.Error("failed to start server")
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Error("failed to start server", sl.Err(err))
 		}
 	}()
 

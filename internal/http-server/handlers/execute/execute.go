@@ -3,7 +3,6 @@ package execute
 import (
 	"errors"
 	"fmt"
-	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator/v10"
 	"io"
@@ -30,7 +29,6 @@ func New(log *slog.Logger, e executor.Executor) http.HandlerFunc {
 
 		log = log.With(
 			slog.String("op", op),
-			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
 
 		var req Request
